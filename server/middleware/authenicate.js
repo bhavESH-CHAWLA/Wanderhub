@@ -26,4 +26,44 @@ const authenicate  = (req,res,next)=>{
     }
 };
 
+
+const deleteListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const listing = await Listing.findById(id);
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: "Listing not found",
+      });
+    }
+
+    const isOwner =
+      listing.owner.toString() === req.user.userId;
+
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to delete this listing",
+      });
+    }
+
+    await listing.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Listing deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete listing",
+    });
+  }
+};
+
 module.exports = authenicate;
